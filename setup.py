@@ -21,7 +21,7 @@ classifiers = [classifier.strip() for classifier in classes.splitlines() if clas
 
 setup(
     name='version-plus',
-    version='1.7.0',
+    version='1.7.1',
     description='The + / ++ / +++ release tool for multi-file projects',
     long_description=Path('README.md').read_text(encoding='utf-8'),
     long_description_content_type='text/markdown',

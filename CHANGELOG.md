@@ -1,3 +1,65 @@
+None (1.7.1) unstable; urgency=medium
+
+  * Features
+    * 
+      * 6a75dfb This is version-plus now.
+    * packaging.version
+      * 75a82f2 Migrate to latest version
+    * StrictVersion
+      * 8702bb5 Wrap packaging Version in StrictVersion, implement modification
+    * Deps
+      * fe8c1ce Migrate to packaging from distutils
+    * CI
+      * a1d30ee Use python-virtualenv instead of build in
+      * 5db44bf Install python3-venv for debian
+      * 76f0ef4 Test in env
+      * eeed86d Debian needs dh-python
+    * Mark
+      * b3b958f Allow --force to force version when uncommited files are found
+    * Changelog
+      * afb2ab8 Added option to generate whole changelog
+      * c73553c Added simple changelog CLI
+      * c31b6f2 Implement WhatIsNew changelog generator
+      * 634228d Added Debian changelog generator for #2
+    * Log
+      * 88d86db Simplify log format for better UX
+    * Check
+      * dfa87a7 Added option to force older version number
+  * Fixes
+    * mark_version_files
+      * 19e379f Fix bug with incorrectly replaced version string
+    * 
+      * 6bf6ac3 Return StrictVersion directly
+      * 0095e8f Pass StrictVersion object, not str
+      * 5032da7 Files version check
+      * 1c71713 Fix when advancing major version, patch version was not reset
+    * StrictVersion
+      * 4dcb85d Override _key too
+    * CI
+      * 031d254 Do not install python-all in Debian
+      * fab2e58 Fix arch test
+      * 926c266 Remove old versions from arch repo correctly
+      * 846970f Fix debian repo path
+      * 7a6e8c9 Remove packagetest
+    * Sematic
+      * 348ad82 Fix crash when no tags exists
+      * faba815 Handle situations when tag is not created yet
+    * Parsing
+      * 6723ad3 Fixes crash when patch version is not provided
+    * Changelog
+      * 2286ead Fix when tagger info is missing
+      * ff96e69 Use tag info only when avaiable
+      * a501512 Fixes in chagelog genreator to include tags with no matched commits
+      * 073b239 Debian changelog, generate date correctly
+      * e53e115 Pull commits correctly when HEAD is used
+      * a88c2f6 Do not crash when original changelog was not found
+      * 7ab98b6 Fix mkdir in Debian changelog generator
+    * WhatIsNew
+      * e36dae8 Call makdir only when path is in dir
+      * b4ab9d2 Fix crash when there is no tag in git repo
+
+ -- Adam Schubert <adam.schubert@sg1-game.net>  Thu, 13 Aug 2026 22:48:35 +0000
+
 version-plus (1.7.0) unstable; urgency=medium
 
   * Rebrand the distributable package as Version+ (`version-plus`).
