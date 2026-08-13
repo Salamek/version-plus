@@ -1,138 +1,254 @@
-# Version
-Do you know that boring step before pushing new relese ? Yes changing version strings all over the place :-( Well this tool solves that for you!
-Version is simple tool to manage multiple version files in your project and commit/tag/push them to git repository.
+# Version+
 
-# Features
+[![Python tests](https://github.com/Salamek/version/actions/workflows/python-test.yml/badge.svg)](https://github.com/Salamek/version/actions/workflows/python-test.yml)
 
-1. Modifies all files containing version string with one simple command
-2. Adds modified version files into GIT commit and pushes them
-3. Can create version tag in GIT
-4. Keeps track if all version files uses same version string
-5. Keeps track if all modified files are commited to GIT
-6. Keeps track if newly set version is not lower of equal to current version
-7. Checks validity of newly set version
-8. Can advance patch/minor/major version by simply using "+" notation (see usage section)
-9. Currently this tool assumes that you are using GIT as your VCS, if do you wish to use this tool without GIT or with different VCS let me know in Issue.
-10. It can generate CHANGELOG using specified commit parser and changelog generator
+The `+` / `++` / `+++` release tool. Version+ keeps version strings in sync and can commit, tag, and push a release—all with one short command.
 
-# Installation
-
-## Debian and derivates
-
-Add repository by running these commands
-
-```bash
-$ wget -O - https://repository.salamek.cz/deb/salamek.gpg.key|sudo apt-key add -
-$ echo "deb     https://repository.salamek.cz/deb/pub all main" | sudo tee /etc/apt/sources.list.d/salamek.cz.list
+```console
+$ version +       # 1.2.3 -> 1.2.4
+$ version ++      # 1.2.3 -> 1.3.0
+$ version +++     # 1.2.3 -> 2.0.0
 ```
 
-And then you can install a package `version`
+Get started in four commands:
 
-```bash
-$ apt update && apt install version
+```console
+$ uv tool install version-plus
+$ version init
+$ version ++ --dry
+$ version ++
 ```
 
-## Archlinux
+`version init` detects common project metadata and creates `.version.yml`. `--dry` previews the complete release without modifying files, creating commits or tags, or pushing anything.
 
-Add repository by adding this at end of file /etc/pacman.conf
+## Why Version+?
 
+Version+ is designed for projects that store their version in more than one place and want a simple, explicit local release workflow.
+
+- Update any number of files using named regular expressions and glob patterns.
+- Verify that all configured files contain the same version before releasing.
+- Set an exact version or increment patch, minor, or major with `+` notation.
+- Optionally update changelogs from Git commits.
+- Commit, tag, and push from the same command.
+- Preview everything safely with `--dry`.
+
+It is intentionally Git-focused and configuration-driven. There is no required commit convention, plugin system, or hosted service unless you enable optional changelog generation.
+
+| If you want... | Version+ gives you... |
+| --- | --- |
+| A memorable release command | `+` for patch, `++` for minor, `+++` for major |
+| One version across different stacks | Regex and glob matching for any text file |
+| A safe local workflow | Consistency checks, dirty-tree protection, and `--dry` |
+| Git release automation | Optional commit, annotated tag, and push |
+
+## Installation
+
+Install Version+ as an isolated command-line tool:
+
+```console
+$ uv tool install version-plus
 ```
+
+or:
+
+```console
+$ pipx install version-plus
+```
+
+The distribution is named `version-plus`; the command remains the pleasantly short `version`. The `version` distribution on PyPI belongs to an unrelated project.
+
+To install the latest development version directly from GitHub:
+
+```console
+$ uv tool install git+https://github.com/Salamek/version.git
+```
+
+You can also install it from the project package repositories.
+
+### Debian and derivatives
+
+```console
+$ wget -O- https://repository.salamek.cz/deb/salamek.gpg.key | sudo apt-key add -
+$ echo "deb https://repository.salamek.cz/deb/pub all main" | sudo tee /etc/apt/sources.list.d/salamek.cz.list
+$ sudo apt update
+$ sudo apt install version
+```
+
+### Arch Linux
+
+Add the repository to `/etc/pacman.conf`:
+
+```ini
 [salamek]
 Server = https://repository.salamek.cz/arch/pub
 SigLevel = Optional
 ```
 
-and then install by running
+Then install Version+:
 
-```bash
-$ pacman -Sy version
+```console
+$ sudo pacman -Sy version
 ```
 
-# Configuration
+## Quick start
 
-Create file named `.version.yml` in root of your project with this content (Only REGEXPS and VERSION_FILES are required):
+From the root of your project, detect common version files and create `.version.yml`:
 
-```yml
+```console
+$ version init
+Created /path/to/project/.version.yml
+Review it, then preview your first release with `version + --dry`.
+```
 
-# GIT Configuration
+Version+ recognizes version fields in `pyproject.toml`, `Cargo.toml`, `package.json`, `setup.py`, and `Chart.yaml`, plus Python `__version__` assignments in conventional version modules. It will stop if the discovered files contain different versions, and it never replaces an existing configuration unless you pass `--force`.
+
+The generated configuration commits and tags releases but leaves automatic pushing disabled. Review it before your first release:
+
+```yaml
 GIT:
-    AUTO_COMMIT: true # Autocommit modified version files (default: true)
-    AUTO_TAG: true # Create GIT tag with new version (default: true)
-    AUTO_PUSH: true # Automaticaly push to repository false=disabled, true=enabled, 'remote_name'=enabled and push to remote_name (default: true)
-    COMMIT_MESSAGE: 'New version {version}' # Message used in commit {version} is placeholder for new version string (default: 'New version {version}')
-    COMMIT_PARSER: 'version.commit_parser.Sematic' # What parser to use to parse commit messages for generating changelog
+  AUTO_COMMIT: true
+  AUTO_TAG: true
+  AUTO_PUSH: false
+  COMMIT_MESSAGE: "Release {version}"
 
-# Array of regexps used to find version strings in your VERSION_FILES
-# key is name of regexp and value is regexp it self
-# add your own and delete unused ones
 REGEXPS:
-    'python': __version__\s*=\s*\'(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)\' # Regexp for version format commonly used in python
-    'setup.py': version\s*=\s*\'(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)\' # Regexp for version format commonly used in python setup.py
-    'PKGBUILD': pkgver\s*=\s*(?P<version>.*) # Regexp used in PKGBUILD
+  python: '__version__\s*=\s*"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"'
+  package: 'pkgver\s*=\s*(?P<version>.*)'
 
-# Array of version files to find and modify, glob format is supported
-# key is glob path and values is regexp name to use to find version string in found file/s
-# add your own and delete unused ones
 VERSION_FILES:
-    'version/__init__.py': 'python'
-    'setup.py': 'setup.py'
-    'archlinux/PKGBUILD': 'PKGBUILD'
-
-# Change log generator
-CHANGE_LOGS:
-    'debian/changelog': # Relative change log path
-        'generator': 'version.change_log.Debian' # Generator to use
-        'types': ['fix', 'feat'] # Types of commits to use
-        'arguments': # Special arguments for generator (in this case 'version.change_log.Debian')
-            'project_name': 'attendance-gui'
-            'stability': 'unstable'
-            'urgency': 'medium'
-
+  version/__init__.py: python
+  archlinux/PKGBUILD: package
 ```
 
-# Usage
+You can also create this file manually. Only `REGEXPS` and `VERSION_FILES` are required. For backward compatibility, omitted Git actions default to enabled; generated configurations set `AUTO_PUSH` to `false` explicitly.
 
-In your project root, you can run these basic commands:
+Check that all configured files agree:
 
-To show current version (finds all version files and versions inside them and compare, if all versions match show it)
-```bash
+```console
 $ version
-OR
+Current version is 1.2.3
+```
+
+Preview and release a minor version:
+
+```console
+$ version ++ --dry
+$ version ++
+```
+
+Version+ displays the planned version and enabled Git actions before asking for confirmation.
+
+## Commands
+
+Show the current project version:
+
+```console
+$ version
 $ version status
 ```
 
-To set new version
-```bash
-$ version 1.0.1
-OR
-$ version mark 1.0.1
+Set an exact version:
+
+```console
+$ version 2.1.0
+$ version mark 2.1.0
 ```
 
-To simply advance in version you can use `"+"` notation in format `(+{1-3})({\d+})` where first group defines version type (number of +) and second version defines step:
+Increment a version component:
 
-* `+` Means advance by one patch version
-* `++` Means advance by one minor version
-* `+++` Means advance by one major version
-* `+2` Means advance by two patch version
-* `++2` Means advance by two minor version
-* `+++2` Means advance by two major version
-* ...
+| Command | Result from `1.2.3` |
+| --- | --- |
+| `version +` | `1.2.4` |
+| `version ++` | `1.3.0` |
+| `version +++` | `2.0.0` |
+| `version +10` | `1.2.13` |
+| `version ++2` | `1.4.0` |
+| `version +++2` | `3.0.0` |
 
-```bash
-$ version + #to advance by 1 patch version
-OR
-$ version +10 #to advance by 10 patch versions
-OR
-$ version ++1 #to advance by 1 minor version
+Useful options:
+
+| Option | Purpose |
+| --- | --- |
+| `init` | Detect common version files and create `.version.yml` |
+| `--dry` | Preview without changing files or Git state |
+| `-y`, `--all_yes` | Skip the confirmation prompt |
+| `-f`, `--force` | Allow a dirty worktree or a non-increasing version |
+| `-p DIR`, `--project_dir=DIR` | Operate on another project directory |
+| `-c FILE`, `--config_file=FILE` | Use another configuration file |
+
+Run `version --help` for the complete CLI reference.
+
+## Configuration reference
+
+```yaml
+GIT:
+  # Add version and changelog files to a release commit.
+  AUTO_COMMIT: true
+
+  # Create an annotated tag named after the new version.
+  AUTO_TAG: true
+
+  # Push the commit and tag. Use false to disable, true for origin,
+  # or a remote name such as upstream.
+  AUTO_PUSH: true
+
+  COMMIT_MESSAGE: "New version {version}"
+
+  # Required only when CHANGE_LOGS is configured.
+  COMMIT_PARSER: "version.commit_parser.Sematic:Sematic"
+
+REGEXPS:
+  python: '__version__\s*=\s*"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"'
+  package: 'pkgver\s*=\s*(?P<version>.*)'
+
+VERSION_FILES:
+  version/__init__.py: python
+  archlinux/PKGBUILD: package
+
+CHANGE_LOGS:
+  CHANGELOG.md:
+    generator: version.change_log.Debian
+    types: [fix, feat]
+    arguments:
+      project_name: example-project
+      stability: unstable
+      urgency: medium
 ```
 
-For more options use
+Each regular expression must expose either:
 
-```bash
-$ version --help
+- a `version` named group containing the complete version; or
+- `major`, `minor`, and optional `patch`, `prerelease`, and `prerelease_num` named groups.
+
+`VERSION_FILES` maps file paths or recursive glob patterns to regular-expression names.
+
+## Changelog generation
+
+Changelog generation is optional. When configured, Version+ parses Git commits between releases and passes them to the selected generator.
+
+```console
+$ version changelog info
+$ version changelog generate 1.2.3 1.3.0 --dry
 ```
 
-# Mirrors
-This project is also mirrored to GitLab https://gitlab.com/Salamek/version
+## Development
 
-Thats it!
+Run the tests with:
+
+```console
+$ python -m pip install . pytest
+$ python -m pytest
+```
+
+Build distributable packages with:
+
+```console
+$ python -m pip install build
+$ python -m build
+```
+
+## Mirrors
+
+The project is also mirrored at <https://gitlab.com/Salamek/version>.
+
+Version+ is licensed under GPL-3.0.

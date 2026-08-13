@@ -2,7 +2,7 @@
 
 
 def main():
-    """Entrypoint to the ``celery`` umbrella command."""
+    """Run the Version command-line interface."""
     from version.bin.version import main as _main
     _main()
 

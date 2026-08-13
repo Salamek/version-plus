@@ -1,3 +1,6 @@
 include requirements.txt
 include README.md
-recursive-include tests *
+include LICENSE
+include pyproject.toml
+recursive-include tests *.py
+global-exclude __pycache__ *.py[cod]

@@ -1,3 +1,13 @@
+version-plus (1.7.0) unstable; urgency=medium
+
+  * Rebrand the distributable package as Version+ (`version-plus`).
+  * Add `version init` discovery for common project metadata.
+  * Add safe, non-interactive dry-run behavior and CLI regression tests.
+  * Add Python 3.9-3.14 CI and trusted PyPI publishing.
+  * Modernize packaging, documentation, and Arch Linux builds.
+
+ -- Adam Schubert <adam.schubert@sg1-game.net>  Fri, 14 Aug 2026 00:00:00 +0200
+
 None (1.6.1) unstable; urgency=medium
 
   * Nothing worth mentioning
@@ -446,4 +456,3 @@ None (1.1.10) unstable; urgency=medium
   * Nothing worth mentioning
 
  -- Adam Schubert <adam.schubert@sg1-game.net>  Tue, 05 Jun 2018 22:50:24 +0200
-

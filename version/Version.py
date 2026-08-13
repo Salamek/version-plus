@@ -5,7 +5,7 @@ import glob
 import logging
 from importlib import import_module
 from typing import List
-from git import Repo, Git
+from git import Git, InvalidGitRepositoryError, Repo
 from git.remote import PushInfo
 from version.exception import ConfigurationError, ProjectVersionError
 from version.enums.CommitTypeEnum import CommitTypeEnum
@@ -37,7 +37,12 @@ class Version:
 
         self.import_modules()
 
-        self.repo = Repo(self._project_dir)
+        try:
+            self.repo = Repo(self._project_dir)
+        except InvalidGitRepositoryError as error:
+            raise ConfigurationError(
+                'Project directory {} is not a Git repository; run `git init` first'.format(self._project_dir)
+            ) from error
         self.git = Git(self._project_dir)
 
     def compile_regexps(self) -> None:
@@ -116,7 +121,7 @@ class Version:
         :return: 
         """
         if self._options['--project_dir']:
-            project_dir = os.path.dirname(os.path.realpath(self._options['--project_dir']))
+            project_dir = os.path.realpath(self._options['--project_dir'])
             if not os.path.isdir(project_dir):
                 raise ConfigurationError('Project DIR {} resolved to {} not found'.format(
                     self._options['--project_dir'],
@@ -422,7 +427,7 @@ class Version:
             self.build_commit_message(set_version)
         ))
 
-        if self._options['--all_yes']:
+        if self._options['--all_yes'] or self._options['--dry']:
             self.log.debug('Auto YES')
         else:
             ok = input('(y/n) [y]') or 'y'
